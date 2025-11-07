@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: bookshelf
 resources:
   - ../../base/bookshelf/
+  - cloudflare.yaml

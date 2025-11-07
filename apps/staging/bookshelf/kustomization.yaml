@@ -4,3 +4,4 @@ namespace: bookshelf
 resources:
   - ../../base/bookshelf/
   - cloudflare.yaml
+  - test-secret.yaml

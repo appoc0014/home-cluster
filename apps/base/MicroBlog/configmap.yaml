@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: MicroBlog-secret
+  labels:
+    app: postgress
+data:
+  POSTGRES_DB: microblog
+  POSTGRES_USER: app
+  POSTGRES_PASSWORD: lookatshark14
+  

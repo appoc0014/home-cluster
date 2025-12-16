@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: MicroBlog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: MicroBlog
+
+  template:
+    metadata:
+      labels:
+        app: MicroBlog
+
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+
+      containers:
+        - name: nginx-MicroBlog
+          image: nginx:1.27-alpine
+
+          envFrom:
+            - configMapRef:
+                name: bookshelf-configmap
+
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+
+          volumeMounts:
+            - mountPath: ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+              name: Nginx-Data
+
+        - name: Postgres-MicroBlog
+          image: postgres:16-alpine
+
+          envFrom:
+            - configMapRef:
+                name: MicroBlog-Secret
+
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+
+          volumeMounts:
+            - mountPath: pgdata:/var/lib/postgresql/data
+              name: Postgres-Data
+
+      restartPolicy: Always
+
+      volumes:
+        - name: Nginx-Data
+          persistentVolumeClaim:
+            claimName: Nginx-Data
+        - name: Postgres-Data
+          persistentVolumeClaim:
+            claimName: Postgres-Data
+
+

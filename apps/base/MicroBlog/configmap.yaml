@@ -1,11 +1,23 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: Microblog-secret
-  labels:
-    app: postgres
+  name: microblog-nginx
+  namespace: microblog
 data:
-  POSTGRES_DB: microblog
-  POSTGRES_USER: app
-  POSTGRES_PASSWORD: lookatshark14
-  
+  default.conf: |
+    server {
+      listen 80;
+
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+      location /auth/ {
+        proxy_pass http://auth:5000/;
+      }
+
+      location / {
+        proxy_pass http://blog:5000/;
+      }
+    }

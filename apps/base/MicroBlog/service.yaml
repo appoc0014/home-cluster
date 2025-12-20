@@ -1,11 +1,56 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: Microblog
+  name: db
+  namespace: microblog
 spec:
-  ports:
-    - port: 8080
   selector:
-    app: Microblog
-  type: ClusterIP
+    app: db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: microblog
+spec:
+  selector:
+    app: auth
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog
+  namespace: microblog
+spec:
+  selector:
+    app: blog
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: microblog
+spec:
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

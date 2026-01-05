@@ -3,6 +3,4 @@ kind: Kustomization
 namespace: WebApp
 resources:
   - ../../base/WebApp/
-    #  - cloudflare.yaml
-    #  - test-secret.yaml
 

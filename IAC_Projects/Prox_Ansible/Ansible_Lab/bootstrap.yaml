@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Create user bone
+      ansible.builtin.user:
+        name: bone
+        groups: root
+        append: true
+
+    - name: add SSH key for bone
+      tags: always 
+      ansible.posix.authorized_key:
+        user: bone
+        key: "{{ lookup('file', 'ansibleconnect.pub') }}"
+
+    - name: add sudoers file for bone # This will give sudo permissons for bone user
+      tags: always 
+      ansible.builtin.copy:
+        src: sudoer_bone
+        dest: /etc/sudoers.d/bone
+        owner: root
+        group: root
+        mode: '0440'

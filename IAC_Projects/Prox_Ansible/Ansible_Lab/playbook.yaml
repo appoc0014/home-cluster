@@ -1,0 +1,110 @@
+---
+
+- hosts: all # Run the following commands on all hosts
+  become: true
+  pre_tasks:
+
+  - name: Update Repo (CentOS)
+    tags: always
+    dnf:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "CentOS"
+
+  - name: Update Repo (Ubuntu)
+    tags: always
+    apt:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: all  # Create Bone user and added SSH keys on all VM's
+  become: true
+  tasks:
+
+    - name: add key for bone user
+      tags: always
+      authorized_key:
+        user: bone
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG8atTip10XCC4N9xJSMDyJyFtzW8cufzwx1OEMUJ2q3 appoc@Appoc14"
+
+- hosts: cluster # Install base apps on Ubuntu hosts in Promox
+  become: true
+  tasks:
+
+  - name: Install packages needed to cluster hosts
+    apt:
+      name:
+        - curl
+        - tree
+        - unzip
+        - vim
+        - git
+      state: present
+      update_cache: yes
+
+- hosts: web # Install programs to LAMP setup and display webpage
+  become: true
+  tasks:
+
+    - name: install httpd and php for CentOS
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
+    - name: Open port 80 on firewall
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: true
+        state: enabled
+      notify:
+        - reload firewall
+
+    - name: Open port 443 on firewall
+      ansible.posix.firewalld:
+        port: 443/tcp
+        permanent: true
+        state: enabled
+      notify:
+        - reload firewall
+
+    - name: Ensure Apache2 service is up
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Copy html file to display
+      ansible.builtin.copy:
+        src: /home/appoc/Github/Ansible_Lab/files/index.html
+        dest: /var/www/html/index.html
+      notify:
+        - Restart Apache
+
+    - name: Copy logo png file to display
+      ansible.builtin.copy:
+        src: /home/appoc/Github/Ansible_Lab/files/proxmox_logo.png
+        dest: /var/www/html/proxmox_logo.png
+      notify:
+        - Restart Apache
+
+    - name: Install MariaDB 
+      ansible.builtin.yum:
+        name: mariadb
+        state: present
+
+    - name: Install PHP
+      ansible.builtin.yum:
+        name:
+        - php
+        - php-mysqlnd
+        - php-fpm
+        state: present
+  handlers:  # Restart Firewall and httpd services after making config changes
+    - name: reload firewall
+      ansible.builtin.command: firewall-cmd --reload
+
+    - name: Restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted  
